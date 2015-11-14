@@ -1,8 +1,7 @@
 {
   "name": "easyleveldb",
-  "version": "v1.0.0",
+  "version": "1.0.0",
   "description": "easy levelDB",
-  "author": "zhang zhi",
   "homepage": "http://yijiebuyi.com",
   "keywords": [
     "yijiebuyi",
@@ -17,6 +16,11 @@
   "scripts": {
     "start": "node app.js"
   },
+  "author": {
+  "name": "zhang zhi",
+  "email": "vip@yijiebuyi.com",
+  "url": "http://yijiebuyi.com"
+},
   "dependencies": {
     "async": "^1.5.0",
     "level": "^1.3.0",
