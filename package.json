@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@git.coding.net:moke/easyLevelDB.git"
+    "url": "git@github.com:zzhi191/easyleveldb.git"
   },
   "private": true,
   "main": "app.js",
