@@ -32,7 +32,7 @@ function encodeURIComponentGBK(str) {
         var ai = a[i];
         if ((ai >= '0' && ai <= '9') || (ai >= 'A' && ai <= 'Z') || (ai >= 'a' && ai <= 'z') || ai === '.' || ai === '-' || ai === '_') continue;
         var b = iconv.encode(ai, 'gbk');
-        var e = ['']; 
+        var e = [''];
         for (var j = 0; j < b.length; j++)
             e.push(b.toString('hex', j, j + 1).toUpperCase());
         a[i] = e.join('%');
