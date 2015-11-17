@@ -1,16 +1,19 @@
 var level = require('level');
 var promisify = require('q-level');
 var Q = require('q');
-var config = require('../config/db_config.json');
-var dbpath = config.db_path;
-var _db = promisify(level(dbpath));
-var tool = require('../utils/tools');
+var tool = require('./utils/tools');
 var _ = require('lodash');
 
+exports = module.exports = _dbBase;
+exports._dbBase = _dbBase;
 
-function _dbBase(tableName) {
+function _dbBase(config,tableName) {
     //构造函数
-    this.db = _db;
+    if(!config||!config.db_path){
+        return tool.autoReturn('not find config or config.db_path');
+    }
+    this.config = config;
+    this.db = promisify(level(config.db_path));
     this.tableName = tableName;
 }
 
@@ -153,18 +156,18 @@ _dbBase.prototype.option = function (flag, obj) {
         deferred.reject(tool.autoReturn('parame is not object!'))
     }
 
-    if (!config || !config.table[tableName]) {
+    if (!self.config || !self.config.table[tableName]) {
         deferred.reject(tool.autoReturn(tableName + 'is not defined in db_config.json'));
     }
 
-    if (!config.table[tableName]._id) {
+    if (!self.config.table[tableName]._id) {
         deferred.reject(tool.autoReturn('not defined identity ID'));
     }
 
 
     var identityID, mainKey;
     if (flag == 'insert') {
-        if (obj.hasOwnProperty(config.table[tableName]._id)) {
+        if (obj.hasOwnProperty(self.config.table[tableName]._id)) {
             identityID = obj._id;
         } else {
             identityID = tool.generateUUID();
@@ -172,7 +175,7 @@ _dbBase.prototype.option = function (flag, obj) {
         obj._id = identityID;
         mainKey = 'table' + '.' + tableName + '.' + identityID;
     } else if (flag == 'update' || flag == 'delete') {
-        if (obj.hasOwnProperty(config.table[tableName]._id)) {
+        if (obj.hasOwnProperty(self.config.table[tableName]._id)) {
             identityID = obj._id;
         } else {
             deferred.reject(tool.autoReturn('update info have no identityID'));
@@ -183,7 +186,7 @@ _dbBase.prototype.option = function (flag, obj) {
     if (flag == 'delete') {
         //删除
         batchObj.push({type: "del", key: mainKey});
-        config.table[tableName].field.forEach(function (item) {
+        self.config.table[tableName].field.forEach(function (item) {
             if (item.name && item.index && obj[item.name]) {
                 var opt = {};
                 opt.type = 'del';
@@ -205,7 +208,7 @@ _dbBase.prototype.option = function (flag, obj) {
                 return updateInfo;
             }).then(function (updateBefor) {
                 //删除旧数据
-                config.table[tableName].field.forEach(function (item) {
+                self.config.table[tableName].field.forEach(function (item) {
                     if (item.name && item.index && updateBefor[item.name]) {
                         var opt = {};
                         opt.type = 'del';
@@ -223,7 +226,7 @@ _dbBase.prototype.option = function (flag, obj) {
         //序列化
         objStr = JSON.stringify(obj);
         batchObj.push({type: "put", key: mainKey, value: objStr});
-        config.table[tableName].field.forEach(function (item) {
+        self.config.table[tableName].field.forEach(function (item) {
             if (item.name && item.index && obj[item.name]) {
                 var opt = {};
                 opt.type = 'put';
@@ -248,11 +251,11 @@ _dbBase.prototype.selectInfoByID = function (identity) {
         deferred.reject(tool.autoReturn('tableName or identity is empty!'));
     }
 
-    if (!config || !config.table[tableName]) {
+    if (!self.config || !self.config.table[tableName]) {
         deferred.reject(tool.autoReturn(tableName + 'is not defined in db_config.json'));
     }
 
-    if (!config.table[tableName]._id) {
+    if (!self.config.table[tableName]._id) {
         deferred.reject(tool.autoReturn('not defined identity ID'));
     }
 
@@ -281,7 +284,7 @@ _dbBase.prototype.selectInfoByKV = function (filedObj) {
         deferred.reject(tool.autoReturn('parame is empty'));
     }
 
-    if (!config || !config.table[tableName]) {
+    if (!self.config || !self.config.table[tableName]) {
         deferred.reject(tool.autoReturn(tableName + 'is not defined in db_config.json'));
     }
 
@@ -324,7 +327,7 @@ _dbBase.prototype.selectListByKV = function (filedObj, limit) {
         deferred.reject(tool.autoReturn('parame object value is empty'));
     }
 
-    if (!config || !config.table[tableName]) {
+    if (!self.config || !self.config.table[tableName]) {
         deferred.reject(tool.autoReturn(tableName + 'is not defined in db_config.json'));
     }
 
@@ -461,6 +464,5 @@ _dbBase.prototype.deletByKey = function (key) {
     return deferred.promise;
 }
 
-module.exports = _dbBase;
 
 
